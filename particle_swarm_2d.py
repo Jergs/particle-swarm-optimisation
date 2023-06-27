@@ -17,19 +17,22 @@ SCREEN_WIDTH = 800
 SCREEN_HEIGHT = 800
 
 # Define some variables for the particle swarm optimization algorithm
-NUM_PARTICLES = 30
-MAX_ITERATIONS = 100
+NUM_PARTICLES = 50
+MAX_ITERATIONS = 10000
 C1 = 1.0
 C2 = 1.0
 W = 0.5
 epsilon = 1e-2
 optimisation_stop_flag = False
+iterations_per_cycle = []
 
 # Create the screen
 screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
 
 # Set the title of the window
 pygame.display.set_caption("Particle Swarm Optimization Demo")
+
+
 ###########################################################################################
 
 
@@ -84,7 +87,7 @@ class Particle(Point2D):
         self.vel_y = W * self.vel_y + C1 * r1 * (self.best_y - self.y) + C2 * r2 * (target.y - self.y)
 
     def draw(self):
-        pygame.draw.circle(screen, BLACK, (int(self.x), int(self.y)), 3)
+        pygame.draw.circle(screen, BLACK, (int(self.x), int(self.y)), 5)
 
         # Draw arrow indicating velocity
         angle = math.atan2(self.vel_y, self.vel_x)
@@ -104,15 +107,22 @@ class Target(Point2D):
 
     def update_position(self):
         global optimisation_stop_flag
+        global iteration_per_cycle
+        global iterations_per_cycle
 
         if optimisation_stop_flag:
             self.x = random.uniform(0, SCREEN_WIDTH)
             self.y = random.uniform(0, SCREEN_HEIGHT)
+
             optimisation_stop_flag = False
+            iterations_per_cycle.append(iteration_per_cycle)
+            iteration_per_cycle = 0
 
 
 def count_p2p_distance(point_a, point_b):
     return math.sqrt((point_a.x - point_b.x) ** 2 + (point_a.y - point_b.y) ** 2)
+
+
 ###########################################################################################
 
 
@@ -137,6 +147,7 @@ for particle in particles:
 # Start the game
 running = True
 iteration = 0
+iteration_per_cycle = 0
 while running:
 
     # Handle events
@@ -170,11 +181,13 @@ while running:
 
     # Check if we've reached the maximum number of iterations
     iteration += 1
-    print(iteration)
+    iteration_per_cycle += 1
     if iteration >= MAX_ITERATIONS:
         running = False
 
     # Add a delay to give Pygame time to draw the particles
-    pygame.time.wait(50)
+    pygame.time.wait(30)
 
 pygame.quit()
+
+print("Average: ", sum(iterations_per_cycle)/len(iterations_per_cycle))
